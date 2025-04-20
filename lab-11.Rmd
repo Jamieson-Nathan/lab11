@@ -1,36 +1,144 @@
 ---
 title: "Lab 11 - Grading the professor, Pt. 2"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Jamieson Nathan"
+date: "04/20/2025"
 output: github_document
 ---
 
 ## Load packages and data
 
-```{r load-packages, message=FALSE}
+```{r setup, message=FALSE}
 library(tidyverse) 
-library(tidymodels)
+library(broom)
 library(openintro)
+
+data(evals)
+
 ```
 
 ## Exercise 1
 
-*Provide your answer here.*  
-Add code chunks as needed. Ensure code chunks are properly labeled without spaces.
+```{r first-one}
 
-```{r exercise1_code}
-# Add your R code here
+m_bty <- lm(score ~ bty_avg, data = evals)
+summary(m_bty)
+
 ```
+y^ =3.880 + 0.06 x ⋅bty_avg
+
+R^2 = .035, Adjusted R^2 = .032
 
 ## Exercise 2
 
-*Provide your answer here.*  
-Add code chunks as needed.
+```{r second-one}
 
-```{r exercise2_code}
-# Add your R code here
+m_bty_gen <- lm(score ~ bty_avg + gender, data = evals)
+summary(m_bty_gen)
+
+```
+#### Q3
+
+Intercept (3.747): Average evaluation score for a female professor with a beauty rating of 0 (not meaningful, just a baseline). 
+
+Slope of bty_avg (0.074): For each 1-point increase in beauty, evaluation score increases by 0.074, controlling for gender.
+
+gendermale (0.172): Male professors score 0.172 points higher than female professors, controlling for beauty.
+
+#### Q4
+
+R^2 =5.91%, meaning the model explains 5.91% of the variability in evaluation scores.
+
+#### Q5
+
+Since males =1; y^male = 3.919 + 0.074 X bty_avg
+
+#### Q6
+
+Male professors score 0.172 points higher than female professors with the same beauty rating.
+
+#### Q7
+
+No it doesn't — the relationship between beauty and score is assumed to be the same for both genders (no interaction term included).
+
+The slope of bty_avg is identical regardless of gender.
+
+#### Q8
+
+Adding gender improves the model and it increases the explained variance by about 2.4 percentage points, suggesting gender adds meaningful information beyond beauty alone.
+
+#### Q9
+
+The slope increased slightly when gender was added. This means controlling for gender slightly strengthened the observed relationship between beauty and evaluation score.
+
+
+```{r third-one}
+
+m_bty_rank <- lm(score ~ bty_avg + rank, data = evals)
+summary(m_bty_rank)
+
+```
+y^ = 3.949 + 0.072 X bty_avg − 0.101 X rank(tenure track) - 0.13 X rank(tenured) 
+
+Intercept (3.949): Average score for a teaching faculty member with a beauty rating of 0 (not meaningful, just baseline).
+
+bty_avg (0.072): Each 1-point increase in beauty rating is associated with a 0.072-point increase in evaluation score, controlling for rank.
+
+ranktenure track (-0.101): Tenure-track professors score 0.101 points lower than teaching faculty, controlling for beauty.
+
+ranktenured (-0.130): Tenured professors score 0.130 points lower than teaching faculty, controlling for beauty.
+
+## Exercise 3
+
+```{r fourth-one}
+
+m_credits <- lm(score ~ cls_credits, data = evals)
+summary(m_credits)
+
+```
+#### 11 
+cls_credits refers to the number of credits the course is worth (typically 1–4). This is a course-level administrative detail, not something students would usually consider when rating a professor’s teaching quality. It's unlikely that a 3-credit course leads to higher or lower evaluations than a 4-credit course purely because of credit value.Maybe if more credits = more important = some sort of effect? 
+
+#### 12 
+After running this model, it appears that credits do have an impact of almost 4%, more than expected for sure. 
+
+#### 13 
+I would not not include cls_did_eval, because it's fully determined by cls_perc_eval and cls_students, leading to redundancy and multicollinearity in the model.
+
+
+```{r fifth-one}
+
+m_full <- lm(score ~ rank + ethnicity + gender + language + age +
+               cls_perc_eval + cls_students + cls_level + cls_profs +
+               cls_credits + bty_avg,
+             data = evals)
+
+summary(m_full)
+
 ```
 
-## Additional Exercises
+```{r sixth-one}
 
-*Repeat the format above for additional exercises.*
+m_full <- lm(score ~ rank + ethnicity + gender + language + age +
+               cls_perc_eval + cls_students + cls_level + cls_profs +
+               cls_credits + bty_avg,
+             data = evals)
+
+m_final <- lm(score ~ ethnicity + gender + cls_perc_eval + cls_credits + bty_avg, data = evals)
+summary(m_final)
+
+```
+y^ = 3.137 + 0.234ethnicity (not minority) + 0.158gender (male) + 0.00521cls_perc_eval + 0.541cls_credits(one credit) + 0.074bty_avg
+
+#### 16 
+
+Numerical predictor (cls_perc_eval): For each 1% increase in the percentage of students who completed evaluations, the professor’s average evaluation score increases by 0.005 points, holding all other variables constant.
+
+Categorical predictor (gender): Male professors score, on average, 0.158 points higher than female professors, after accounting for beauty, ethnicity, course credits, and percent of evaluations completed.
+
+#### 17 
+
+Based on the model, a professor likely to receive a high evaluation score would have the following characteristics: Male, not a minority, high beauty rating teaches a one-credit course, and has a high percentage of students completing evaluations.
+
+#### 18 
+
+No, we shouldn’t generalize too broadly, as this dataset is from one institution and one time period, and includes subjective ratings potentially influenced by contextual or cultural norms specific to that university.
